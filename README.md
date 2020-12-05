@@ -1,5 +1,7 @@
-# SCADA
+# SCADA (Containerized)
 Project Kalman part 2, Supervisory Control And Data Acquisition written in python for the Lafayette FSAE Car
+
+This version of SCADA runs inside of Docker containers instead of systemd services so a demo can be more easily run on a web server.
 
 ## Block Diagram
 ![](https://raw.githubusercontent.com/Lafayette-FSAE/scada/master/diagrams/data-aquisition.svg)
