@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 import sys, os
 
-lib_path = '/usr/etc/scada'
 config_path = '/usr/etc/scada/config'
+lib_path = '/usr/etc/scada/utils'
 
 sys.path.append(lib_path)
 sys.path.append(config_path)
@@ -20,7 +20,7 @@ import datetime
 # TODO: reintroduce verbose logging
 
 # Configure Redis interface
-data = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+data = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
 p = data.pubsub()
 p.subscribe('bus_data')
 
@@ -29,6 +29,7 @@ def execute(cal_function):
 	arguments = []
 	for key in argument_keys:
 		value = data.get(key)
+		print(value)
 		value = float(value)
 #		if hasattr(value, 'decode'): 
 #			value = value.decode()

@@ -1,9 +1,0 @@
-[Service]
-WorkingDirectory=/usr/etc/scada
-ExecStart=/usr/bin/scada_logger.py
-Restart=always
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=scada_logger
-User=root
-Group=root

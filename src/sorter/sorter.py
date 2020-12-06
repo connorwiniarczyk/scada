@@ -55,6 +55,9 @@ def sort_pdo(node_id, pdo_number, message_data):
 
 	pipe = data.pipeline()
 	for index, byte in enumerate(message_data, start=0):
+
+		byte = int(byte, 16)
+
 		key = '{}:{}'.format(node, pdo_structure[index])
 		key = key.lower()
 		pipe.setex(key, 10, byte)

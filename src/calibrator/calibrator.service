@@ -1,9 +1,0 @@
-[Service]
-WorkingDirectory=/usr/etc/scada
-ExecStart=/usr/bin/scada_calibrator.py
-Restart=always
-StandardOutput=syslog
-StandardError=syslog
-SyslogIdentifier=scada_calibrator
-User=root
-Group=root

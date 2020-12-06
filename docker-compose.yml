@@ -18,6 +18,12 @@ services:
     volumes: ['./config:/usr/etc/scada/config']
     depends_on: [redis]
 
-# volumes:
-#   shared: 
-#   # config: "./config"
+  calibrator:
+    build: src/calibrator
+    volumes: ['./config:/usr/etc/scada/config', './utils:/usr/etc/scada/utils']
+    depends_on: [redis]
+
+  logger:
+    build: src/logger
+    volumes: ['./config:/usr/etc/scada/config']
+    depends_on: [redis]
