@@ -11,44 +11,23 @@ emulate_packs: no
 emulate_cockpit: no
 emulate_motorcontroller: no
 
-# CAN node ids
-can_nodes:
-  1: MOTOR
-  3: TSI
-  4: PACK1
-  5: PACK2
+node_ids:
+  1: motor
+  3: tsi
+  4: pack1
+  5: pack2
 
 
 # structure of data in PDOs
-
-# NOTE: PDO length cannot exceed 8 bytes, if a 
-#       list has less than 8 elements, the remaining
-#       bytes will be ignored
-
 process_data:
-  MOTOR:   [ STATUS, DUMMY2, TORQUE, DUMMY4, DUMMY5, DUMMY6, DUMMY7, DUMMY9 ]
-  MOTOR-2: [ MOTOR_TEMP, CONTROLLER_TEMP, DC_LINK_VOLTAGE, WARNING, CURRENT_DEMAND, TEST ]
-  MOTOR-3: [ THROTTLE-byte0, THROTTLE-byte1,  AUX, BRAKE, PHASEB_CURRENT, DUMMY5, DUMMY6, DUMMY7 ]
-  MOTOR-4: [ TORQUE_REGULATOR, FLUX_REGULATOR, VELOCITY ]
+  motor:   [ status, _, _, _, _, _, _, _ ]
+  motor_2: [ 'temp:motor', 'temp:controller', dc_link_voltage, warning, current_demand, test ]
+  motor_3: [ 'throttle:byte0', 'throttle:byte1', aux, brake, phaseb_current, _, _, _]
+  motor_4: [ torque_regulator, flux_regulator, velocity ]
 
-  TSI:    [ conditions, 'mc_voltage:raw', 'voltage:raw', 'cooling_temp:raw', 'throttle:raw', 'flow_rate:raw', 'state:int', 'current:raw' ]
-  PACK1:  [ voltage, current, state_of_charge_01, state_of_charge_02, temp, 'cells:temp:min', 'cells:temp:avg', 'cells:temp:max' ]
-  PACK2:  [ voltage, current, state_of_charge_01, state_of_charge_02, temp, 'cells:temp:min', 'cells:temp:avg', 'cells:temp:max' ]
-
-# Other data to keep track of
-# need to poll this data manually
-# service_data:
-
-#   Cell1Temp:
-#     node_id: 2
-#     index: 2011
-#     poll_rate: 10
-
-#   MotorTemp:
-#     node_id: 1
-#     index: 2010
-#     subindex: 0
-#     poll_rate: 0.5
+  tsi:    [ conditions, 'mc_voltage:raw', 'voltage:raw', 'cooling_temp:raw', 'throttle:raw', 'flow_rate:raw', 'state:int', 'current:raw' ]
+  pack1:  [ voltage, current, state_of_charge_01, state_of_charge_02, temp, 'cells:temp:min', 'cells:temp:avg', 'cells:temp:max' ]
+  pack2:  [ voltage, current, state_of_charge_01, state_of_charge_02, temp, 'cells:temp:min', 'cells:temp:avg', 'cells:temp:max' ]
 
 # a list of keys to be ignored by the logger
 dont_log: ['*:raw', 'motor:*', 'emulator:*']
