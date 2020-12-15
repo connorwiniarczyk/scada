@@ -1,11 +1,35 @@
-version: '3.3'
+version: '3'
 
 services:
   redis: 
     image: redis:latest
+    command: redis-server --requirepass hackme
     ports:
-      - 127.0.0.1:6379:6379
-  
+      - 6379:6379
+
+  database:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: demo
+      POSTGRES_USER: demo_user
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+
+  grafana:
+    build: grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - /var/lib/grafana/plugins
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+
+  logger:
+    build: src/logger
+    volumes: ['./config:/usr/etc/scada/config']
+    depends_on: [redis, database]
+
   device-simulators:
     build: simulators
     volumes:
@@ -23,7 +47,6 @@ services:
     volumes: ['./config:/usr/etc/scada/config', './utils:/usr/etc/scada/utils']
     depends_on: [redis]
 
-  logger:
-    build: src/logger
-    volumes: ['./config:/usr/etc/scada/config']
-    depends_on: [redis]
+
+volumes:
+  grafana-storage:

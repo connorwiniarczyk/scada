@@ -20,7 +20,7 @@ import datetime
 # TODO: reintroduce verbose logging
 
 # Configure Redis interface
-data = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
+data = redis.Redis(host='redis', password="hackme", port=6379, db=0, decode_responses=True)
 p = data.pubsub()
 p.subscribe('bus_data')
 
@@ -29,27 +29,17 @@ def execute(cal_function):
 	arguments = []
 	for key in argument_keys:
 		value = data.get(key)
-		print(value)
-		value = float(value)
-#		if hasattr(value, 'decode'): 
-#			value = value.decode()
-#			value = int(value)
-#			print(key + ' ' + str(value))
+		value = int(value)
 		arguments.append(value)
 		
 	function = calibration.get_function(cal_function)
-	result = function(arguments)
-	print()
-	print(cal_function)
-	print(arguments)
-	print(result)
-	print()
+	result = function(*arguments)
 	return result
 		
 def update():
 	for cal_function in calibration.get_function_names():
 		try:
-			print(cal_function)
+			# print(cal_function)
 			result = execute(cal_function)
 			data.setex(cal_function, 10, result)	
 			data.publish('calculated_data', cal_function)

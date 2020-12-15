@@ -12,7 +12,7 @@ sys.path.append(config_path)
 import config
 
 import redis
-data = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)	
+data = redis.Redis(host='redis', password="hackme", port=6379, db=0, decode_responses=True)	
 
 import object_dictionary
 
@@ -30,7 +30,7 @@ class TSI(Simulator):
 		self.od.set_pdo_map(pdo_structure)
 		self.od.set('state:int', 1)
 
-		self.state_transitions = [5, 10, 30, 35, 40]
+		self.state_transitions = [5, 10, 25, 35, 40]
 
 	# update the state of the simulator at each time step
 	def update(self, simulation_time):
@@ -65,10 +65,15 @@ class TSI(Simulator):
 
 		pdo = self.od.get_pdo_data()
 
-		pdo_message = " ".join([hex(byte) for byte in pdo])
+		# pdo_message = " ".join([hex(byte) for byte in pdo])
+		pdo_message = "_".join(["{:02x}".format(byte) for byte in pdo])
 		
-		print(pdo_message)
-		data.publish("can-message", "0x183" + " " + pdo_message)
+		data.publish("can-message", "183" + "_" + pdo_message)
+
+		message = "0x183 " + pdo_message
+		message = message.replace("0x", "").replace(" ", "-")
+		data.lpush("canbuffer", message)
+		data.ltrim("canbuffer", 0, 9)
 
 	# determine which drive state the TSI is in based off the current time,
 	# with hard coded state transitions

@@ -10,7 +10,7 @@ import time
 
 # open a connection to the redis server where we will
 # be writing data
-data = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
+data = redis.Redis(host='redis', password="hackme", port=6379, db=0, decode_responses=True)
 listener = data.pubsub()
 listener.subscribe('can-message')
 
@@ -25,12 +25,9 @@ FUNCTIONS = {
 }
 
 def on_message(message):
-	message_bytes = message.split(' ')
+	message_bytes = message.split('_')
 	cob_id = message_bytes[0]
 	message_bytes = message_bytes[1:]
-
-	print(cob_id)
-	print(int(cob_id, 16))
 
 	cob_id = int(cob_id, 16)
 
@@ -38,8 +35,6 @@ def on_message(message):
 	node = cob_id % 16
 	function_code = cob_id - node
 	protocol = FUNCTIONS.get(function_code)
-
-	print(node)
 
 	# do processing of PDOs
 	if protocol in ['PDO-1', 'PDO-2', 'PDO-3', 'PDO-4']:
@@ -71,69 +66,3 @@ while True:
 		on_message(message['data'])
 	else:
 		time.sleep(0.01)
-
-
-#class Listener(can.Listener):
-#	def on_message_received(self, msg):
-
-#		# infer the CANOpen protocol used and node id of sender
-#		protocol, node_id = messages.get_info(msg)
-
-##		if protocol == 'SDO-WRITE':
-##			if len(msg.data) == 0:
-##				return
-##
-##			# check the config file to find out name of node
-##			try:
-##				node = config.get('can_nodes').get(node_id)
-##			except:
-##				return
-##
-##			control_byte = msg.data[0]
-##			index = msg.data[2] * 256 + msg.data[1]
-##			subindex = msg.data[3]
-##
-##			if index == 0x3003:
-##				temp = msg.data[5] * 256 + msg.data[4]
-##				print(f"cell: {subindex} at temp: {temp}")
-##				data.setex(f"pack1:temp:cell_{subindex}",60,temp)
-
-#		# if the protocol used is one of the four types
-#		# of PDOs (Process Data Objects), then log it
-#		if protocol in ['PDO-1', 'PDO-2', 'PDO-3', 'PDO-4']:
-
-#			_, pdo_number = protocol.split('-')
-
-#			# check the config file to find out name of node
-#			try:
-#				node = config.get('can_nodes').get(node_id)
-#			except:
-#				return
-
-#			# check the config file to figure out expected
-#			# structure of the process data
-#			if pdo_number == '1':
-#				pdo_structure = config.get('process_data').get(node)
-#			else:
-#				pdo_structure = config.get('process_data').get('{}-{}'.format(node, pdo_number))
-
-#			# separate can message into bytes and write each one
-#			# to the redis server with its name as defined in the
-#			# config file
-
-#			pipe = data.pipeline()
-
-#			for index, byte in enumerate(msg.data, start=0):
-#				key = '{}:{}'.format(node, pdo_structure[index])
-#				key = key.lower()
-#				pipe.setex(key, 10, int(byte))
-
-#			data.publish('bus_data', key)
-#			pipe.execute()
-
-#if __name__ == "__main__":
-#	bus = utils.bus(config.get('bus_info'))
-#	notifier = can.Notifier(bus, [Listener()])
-
-#	for msg in bus:
-#		pass

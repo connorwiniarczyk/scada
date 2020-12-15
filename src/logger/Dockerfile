@@ -1,6 +1,6 @@
-FROM frolvlad/alpine-python3
+FROM python
 
-RUN pip install redis pyyaml logger
+RUN pip install redis pyyaml psycopg2-binary
 
 COPY . .
-CMD python3 logger.py
+CMD python logger.py

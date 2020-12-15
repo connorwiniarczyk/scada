@@ -1,11 +1,13 @@
 #!/usr/bin/python3
 
+print("test", flush=True)
+
 import sys, os
 
-lib_path = '/usr/etc/scada'
+# lib_path = '/usr/etc/scada'
 config_path = '/usr/etc/scada/config'
 
-sys.path.append(lib_path)
+# sys.path.append(lib_path)
 sys.path.append(config_path)
 
 import config
@@ -13,29 +15,30 @@ import time, datetime
 import redis
 import psycopg2
 
-car_state = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
-database = psycopg2.connect(
-	user='fsae',
-	password='cables',
-	host='localhost',
-	port='5432',
-	database = 'demo'
-)
-
+# connect to redis
+car_state = redis.Redis(host='redis', password="hackme", port=6379, db=0, decode_responses=True)
 p = car_state.pubsub()
 p.subscribe('bus_data')
 p.subscribe('calculated_data')
 p.subscribe('new-session')
 
+# connect to postgres database
+database = psycopg2.connect(
+	user='demo_user',
+	password='password',
+	host='database',
+	port='5432',
+	database = 'demo'
+)
 cursor = database.cursor()
 
-# Uncomment this to wipe the database on startup of 
-# this script, sometimes useful when debugging
-# 
-# cursor.execute(""" 
-# 	DROP TABLE IF EXISTS sensors;
-# 	DROP TABLE IF EXISTS data;
-# """)
+## Uncomment this to wipe the database on startup of 
+## this script, sometimes useful when debugging
+## 
+## cursor.execute(""" 
+##	DROP TABLE IF EXISTS sensors;
+##	DROP TABLE IF EXISTS data;
+## """)
 
 # Make sure both of our tables exist before starting
 cursor.execute("""
@@ -46,6 +49,7 @@ CREATE TABLE IF NOT EXISTS data(
 	timestamp TIMESTAMP DEFAULT NOW()
 );
 """)
+
 
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS sensors(
@@ -59,17 +63,15 @@ CREATE TABLE IF NOT EXISTS sensors(
 
 database.commit()
 
-
-
 def delimit_session():
-        """
-        Insert a session delimiter into the data table.
-        This is a row with sensor_id of "scada:session"
-        and value of "NEW-SESSION"
-        """
+	"""
+	Insert a session delimiter into the data table.
+	This is a row with sensor_id of "scada:session"
+	and value of "NEW-SESSION"
+	"""
 
 	cursor.execute("""
-		INSERT INTO data (sensor_id, value)		   
+		INSERT INTO data (sensor_id, value)
 		VALUES ('scada:session', 'NEW-SESSION');
 	""") 
 
@@ -78,11 +80,11 @@ def check_update_ready(key):
 	"""
 	For a given key, determine if a new row should be added
 	to the data table or not. It does this by checking the 
-        key against a locally stored dictionary of recently logged
-        keys, called previous_values. The dictionary stores both the
-        last value logged and the time it was logged. The function
-        will return true if either the values are different, or if
-        it has been more than a minute since the key was logged last.
+	key against a locally stored dictionary of recently logged
+	keys, called previous_values. The dictionary stores both the
+	last value logged and the time it was logged. The function
+	will return true if either the values are different, or if
+	it has been more than a minute since the key was logged last.
 	"""
 
 	value, timestamp = previous_values.get(key, (None, datetime.datetime.now()))
@@ -126,12 +128,15 @@ def update(message, key):
 		previous_values[key] = (car_state.get(key), datetime.datetime.now())
 
 while True:
+	
 	message = p.get_message()
 	if message:
 		if message['channel'] in ['bus_data', 'calculated_data']:  
 			update(message['channel'], message['data'])
+			pass
 		elif message['channel'] == 'new-session':
 			delimit_session()		 
+			pass
 
 	else:
 		database.commit()
